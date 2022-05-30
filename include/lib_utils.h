@@ -283,23 +283,55 @@ char *get_thread_support(int threadsupport)
 
 void print_info(MPI_Info info)
 {
-   if (info == MPI_INFO_NULL) {
-      printf("info :\t\tNULL\n");
-      return;
-   }
+   infos_keys_t keys = get_info(info);
 
+   printf("- Info keys : %d\n", keys.num);
+   for (int i = 0; i < keys.num; i++)
+      printf("  - Key   : %s\n"
+             "  - Value : %s\n"
+             "  - Flag  : %d\n",
+             keys.key[i], keys.value[i] ? keys.value[i] : "null", keys.flag[i]);
+}
+
+typedef struct infos_keys_s {
+   int num;
+   char **key;
+   char **value;
+   int *flag;
+} infos_keys_t;
+
+free_info(infos_keys_t keys)
+{
+   free(keys.key);
+   free(keys.value);
+   free(keys.flag);
+}
+
+infos_keys_t get_info(MPI_Info info)
+{
+   infos_keys_t keys;
    int nkeys;
-
+   if (info == MPI_INFO_NULL) {
+      keys.num = 0;
+      return keys;
+   }
    MPI_Info_get_nkeys(info, &nkeys);
-   printf("nkeys : %d\n", nkeys);
+   keys.num = nkeys;
+   keys.key = malloc(sizeof(char) * nkeys);
+   keys.value = malloc(sizeof(char *) * nkeys);
+   keys.flag = malloc(sizeof(int) * nkeys);
 
    for (int i = 0; i < nkeys; i++) {
-      char *key = NULL, *value = NULL;
-      int valuelen = 0, flag;
-      MPI_Info_get(info, key, valuelen, value, &flag);
-      printf("key : %s"
-             "value : [%s](%d)"
-             "flag : %d\n",
-             key ? key : "", value ? value : "", valuelen, flag);
+      char key[MPI_MAX_INFO_KEY], *value = NULL;
+      keys.key[i] = malloc(sizeof(char) * MPI_MAX_INFO_KEY);
+      int value_len = 0, flag;
+
+      MPI_Info_get_nthkey(info, i, key);
+      MPI_Info_get(info, key, value_len, value, &flag);
+
+      keys.key[i] = key;
+      keys.value[i] = value;
+      keys.flag[i] = flag;
    }
+   return keys;
 }
