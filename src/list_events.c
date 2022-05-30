@@ -1,4 +1,4 @@
-#include "lib_utils.h"
+#include "mpit_utils.h"
 #include "mpi.h"
 
 #include <stdio.h>

@@ -281,18 +281,6 @@ char *get_thread_support(int threadsupport)
    }
 }
 
-void print_info(MPI_Info info)
-{
-   infos_keys_t keys = get_info(info);
-
-   printf("- Info keys : %d\n", keys.num);
-   for (int i = 0; i < keys.num; i++)
-      printf("  - Key   : %s\n"
-             "  - Value : %s\n"
-             "  - Flag  : %d\n",
-             keys.key[i], keys.value[i] ? keys.value[i] : "null", keys.flag[i]);
-}
-
 typedef struct infos_keys_s {
    int num;
    char **key;
@@ -300,11 +288,17 @@ typedef struct infos_keys_s {
    int *flag;
 } infos_keys_t;
 
-free_info(infos_keys_t keys)
+void free_info(infos_keys_t *keys)
 {
-   free(keys.key);
-   free(keys.value);
-   free(keys.flag);
+   for (int i = 0; i < keys->num; i++) {
+      free(keys->key[i]);
+      free(keys->value[i]);
+   }
+   if (keys->num != 0) {
+      free(keys->key);
+      free(keys->value);
+      free(keys->flag);
+   }
 }
 
 infos_keys_t get_info(MPI_Info info)
@@ -334,4 +328,16 @@ infos_keys_t get_info(MPI_Info info)
       keys.flag[i] = flag;
    }
    return keys;
+}
+
+void print_info(MPI_Info info)
+{
+   infos_keys_t keys = get_info(info);
+
+   printf("- Info keys : %d\n", keys.num);
+   for (int i = 0; i < keys.num; i++)
+      printf("  - Key   : %s\n"
+             "  - Value : %s\n"
+             "  - Flag  : %d\n",
+             keys.key[i], keys.value[i] ? keys.value[i] : "null", keys.flag[i]);
 }
