@@ -2,7 +2,7 @@
  * Querying and printing the variables names of all available control variables
  */
 
-#include "mpit_utils.h"
+#include "lib_utils.h"
 
 #include <mpi.h>
 #include <stdio.h>
@@ -37,6 +37,10 @@ int main(int argc, char *argv[])
    err = MPI_T_pvar_get_num(&num);
    if (err != MPI_SUCCESS)
       return err;
+
+   printf("Number of performance variables : %d\n", num);
+   if (num == 0)
+      return MPI_T_finalize();
 
    static MPI_T_pvar_handle pvar_handle = MPI_T_PVAR_HANDLE_NULL;
 
@@ -162,7 +166,4 @@ int main(int argc, char *argv[])
    err = MPI_T_pvar_session_free(&session);
 
    return MPI_T_finalize();
-
-   MPI_Barrier(MPI_COMM_WORLD);
-   MPI_Finalize();
 }
