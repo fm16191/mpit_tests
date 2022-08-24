@@ -121,7 +121,8 @@ int main(int argc, char *argv[])
          }
          else if (datatype == MPI_COUNT) {
             err = MPI_T_cvar_read(handle, &v_count);
-            sprintf(value, "%lu", v_count);
+            sprintf(value, "%llu", v_count);
+            // sprintf(value, "%lu", v_count); // MPC defines MPI_COUNT differently
          }
          else if (datatype == MPI_CHAR) {
             err = MPI_T_cvar_read(handle, v_char);
