@@ -2,7 +2,7 @@ CC=mpicc
 CFLAGS=-Wall -Wextra -g3
 INCLUDEFLAGS=-I include
 CTFLAGS=-Wall -Wextra -g3 -Wno-unused-parameter # Compiler flags for tests only.
-OFLAGS=-march=native -mtune=native -O2 -Os
+OFLAGS=-march=native -mtune=native -O2
 
 SRC=src
 EXT=ext
