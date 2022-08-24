@@ -1,6 +1,8 @@
 /*
  * Querying and printing the variables names of all available control variables
  */
+// #ifdef MPICH
+// #ifdef MPC_MPI_H_
 
 #include "lib_utils.h"
 
@@ -14,6 +16,7 @@ int main(int argc, char *argv[])
    int verbose, bind, scope;
    MPI_T_enum enumtype;
    int threadsupport;
+   int count;
 
    MPI_Datatype datatype;
 
@@ -26,40 +29,52 @@ int main(int argc, char *argv[])
 
    printf("Number of control variables : %d\n", num);
 
+
+   char *name, *desc;
+   int maxnamelen = strlen("Variable");
+   int maxdesclen = 0;
+   int namelen, desclen;
+
+   int v_int;
+   unsigned int v_uint;
+   unsigned long v_ulong;
+   unsigned long long v_ullong;
+   MPI_Count v_count;
+   char v_char[4097];
+   double v_double;
+   char value[257];
+   MPI_T_cvar_handle handle = MPI_T_CVAR_HANDLE_NULL;
+
    for (i = 0; i < num; i++) {
-      char *name = NULL, *desc = NULL;
-      int name_len = 0, desc_len = 0;
-      int err = MPI_T_cvar_get_info(i, name, &name_len, NULL, NULL, NULL, desc,
-                                    &desc_len, NULL, NULL);
+      int namelen = 0;
+      int desclen = 0;
+      char fname[5];
+      char fdesc[5];
+      err = MPI_T_cvar_get_info(i, fname, &namelen, &verbose, &datatype, &enumtype,
+                                fdesc, &desclen, &bind, &scope);
+      if (namelen > maxnamelen)
+         maxnamelen = namelen;
+      if (desclen > maxdesclen)
+         maxdesclen = desclen;
+   }
 
-      name = malloc(sizeof(char) * name_len);
-      desc = malloc(sizeof(char) * desc_len);
+   name = (char *)malloc(sizeof(char) * maxnamelen);
+   desc = (char *)malloc(sizeof(char) * maxdesclen);
 
-      err = MPI_T_cvar_get_info(i, name, &name_len, &verbose, &datatype,
-                                &enumtype, desc, &desc_len, &bind, &scope);
-      if (err != MPI_SUCCESS && err != MPI_T_ERR_INVALID_INDEX)
-         return err;
-
-      /* Read cvar value */
-      MPI_T_cvar_handle handle = MPI_T_CVAR_HANDLE_NULL;
-      int count;
-      int v_int;
-      unsigned int v_uint;
-      unsigned long v_ulong;
-      unsigned long long v_ullong;
-      MPI_Count v_count;
-      char v_char[4097];
-      double v_double;
-      char value[257];
+   for (i = 0; i < num; i++) {
+      namelen = maxnamelen;
+      desclen = maxdesclen;
+      err = MPI_T_cvar_get_info(i, name, &namelen, &verbose, &datatype,
+                                &enumtype, desc, &desclen, &bind, &scope);
+      if (MPI_T_ERR_INVALID_INDEX == err)
+         continue;
 
       if (bind == MPI_T_BIND_NO_OBJECT) {
          err = MPI_T_cvar_handle_alloc(i, NULL, &handle, &count);
-         assert(err == MPI_SUCCESS);
       }
       else if (bind == MPI_T_BIND_MPI_COMM) {
          MPI_Comm comm = MPI_COMM_WORLD;
          err = MPI_T_cvar_handle_alloc(i, &comm, &handle, &count);
-         assert(err == MPI_SUCCESS);
       }
       else {
          sprintf(value, "unsupported");
@@ -94,33 +109,27 @@ int main(int argc, char *argv[])
          }
          else if (datatype == MPI_UNSIGNED) {
             err = MPI_T_cvar_read(handle, &v_uint);
-            assert(err == MPI_SUCCESS);
             sprintf(value, "%u", v_uint);
          }
          else if (datatype == MPI_UNSIGNED_LONG) {
             err = MPI_T_cvar_read(handle, &v_ulong);
-            assert(err == MPI_SUCCESS);
             sprintf(value, "%lu", v_ulong);
          }
          else if (datatype == MPI_UNSIGNED_LONG_LONG) {
             err = MPI_T_cvar_read(handle, &v_ullong);
-            assert(err == MPI_SUCCESS);
             sprintf(value, "%llu", v_ullong);
          }
          else if (datatype == MPI_COUNT) {
             err = MPI_T_cvar_read(handle, &v_count);
-            assert(err == MPI_SUCCESS);
-            sprintf(value, "%llu", v_count);
+            sprintf(value, "%lu", v_count);
          }
          else if (datatype == MPI_CHAR) {
             err = MPI_T_cvar_read(handle, v_char);
-            assert(err == MPI_SUCCESS);
             // sprintf(value, "%s", v_char);
             strcpy(value, v_char);
          }
          else if (datatype == MPI_DOUBLE) {
             err = MPI_T_cvar_read(handle, &v_double);
-            assert(err == MPI_SUCCESS);
             sprintf(value, "%f", v_double);
          }
          else {
@@ -141,9 +150,11 @@ int main(int argc, char *argv[])
              "- Value     : %s\n",
              i, name, verbose, get_verbose(verbose), datatype, get_datatype(datatype), desc, bind,
              get_bind(bind), scope, get_scope(scope), value);
-      free(name);
-      free(desc);
    }
+   free(name);
+   free(desc);
+   if (handle != MPI_T_CVAR_HANDLE_NULL)
+      MPI_T_cvar_handle_free(&handle);
 
    return MPI_T_finalize();
 }
