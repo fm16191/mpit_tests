@@ -1,4 +1,4 @@
-#include "mpit_utils.h"
+#include "lib_utils.h"
 #include "mpi.h"
 
 #include <stdio.h>
@@ -36,9 +36,8 @@ int main(int argc, char *argv[])
       char *desc = NULL;
 
       /* Get buffer lengths */
-      MPI_T_event_get_info(i, name, &namelen, &verbose, NULL, NULL,
-                           &num_elements, &enumtype, &info, desc, &desclen,
-                           &bind);
+      MPI_T_event_get_info(i, name, &namelen, &verbose, NULL, NULL, &num_elements, &enumtype, &info,
+                           desc, &desclen, &bind);
 
       /* Allocate string buffers */
       name = malloc(sizeof(char) * namelen);

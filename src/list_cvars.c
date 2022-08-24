@@ -2,7 +2,7 @@
  * Querying and printing the variables names of all available control variables
  */
 
-#include "mpit_utils.h"
+#include "lib_utils.h"
 
 #include <mpi.h>
 #include <stdio.h>
@@ -81,8 +81,7 @@ int main(int argc, char *argv[])
                err = MPI_T_enum_get_info(enumtype, &etnum, etname, &etlen);
                for (i = 0; i < etnum; i++) {
                   etlen = 12;
-                  err =
-                     MPI_T_enum_get_item(enumtype, i, &newval, etname, &etlen);
+                  err = MPI_T_enum_get_item(enumtype, i, &newval, etname, &etlen);
                   if (newval == v_int) {
                      sprintf(value, "%s", etname);
                      done = 1;
@@ -140,10 +139,8 @@ int main(int argc, char *argv[])
              "- Bind      : %d => %s\n"
              "- Scope     : %d => %s\n"
              "- Value     : %s\n",
-             i, name, verbose, get_verbose(verbose), datatype,
-             get_datatype(datatype), desc ? desc : "", bind, get_bind(bind),
-             scope, get_scope(scope), value);
-
+             i, name, verbose, get_verbose(verbose), datatype, get_datatype(datatype), desc, bind,
+             get_bind(bind), scope, get_scope(scope), value);
       free(name);
       free(desc);
    }

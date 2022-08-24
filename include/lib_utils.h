@@ -309,7 +309,11 @@ infos_keys_t get_info(MPI_Info info)
       keys.num = 0;
       return keys;
    }
-   MPI_Info_get_nkeys(info, &nkeys);
+   int err = MPI_Info_get_nkeys(info, &nkeys);
+   if (err != MPI_SUCCESS) {
+      keys.num = 0;
+      return keys;
+   }
    keys.num = nkeys;
    keys.key = malloc(sizeof(char) * nkeys);
    keys.value = malloc(sizeof(char *) * nkeys);
