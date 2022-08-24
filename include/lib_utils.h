@@ -333,15 +333,3 @@ infos_keys_t get_info(MPI_Info info)
    }
    return keys;
 }
-
-void print_info(MPI_Info info)
-{
-   infos_keys_t keys = get_info(info);
-
-   printf("- Info keys : %d\n", keys.num);
-   for (int i = 0; i < keys.num; i++)
-      printf("  - Key   : %s\n"
-             "  - Value : %s\n"
-             "  - Flag  : %d\n",
-             keys.key[i], keys.value[i] ? keys.value[i] : "null", keys.flag[i]);
-}
